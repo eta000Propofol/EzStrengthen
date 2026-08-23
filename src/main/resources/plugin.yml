@@ -1,0 +1,19 @@
+name: EzStrengthen
+version: '${version}'
+main: com.ezstrengthen.EzStrengthen
+api-version: '26.1'
+authors: [EzPlugins]
+description: 装备强化插件：GUI 强化任意物品、词条系统、Vault 经济、至纯源石材料
+softdepend: [Vault]
+commands:
+  st:
+    description: 打开装备强化界面
+    usage: /st
+    aliases: [strengthen]
+permissions:
+  ezstrengthen.use:
+    description: 允许使用装备强化
+    default: true
+  ezstrengthen.admin:
+    description: 管理权限（重载配置、发放至纯源石）
+    default: op

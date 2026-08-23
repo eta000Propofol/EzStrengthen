@@ -1,0 +1,246 @@
+# ============================================================
+# EzStrengthen 装备强化插件 配置文件
+# 修改后使用 /st reload 重载，或重启服务器
+# 颜色代码使用 & 符号，例如 &a &b &c &6 &7
+# ============================================================
+
+# ---------------- 经济设置 ----------------
+economy:
+  # 货币显示名称
+  currency-name: "龙门币"
+  # 第 1~6 次强化分别消耗的货币（可自行修改，数量必须为 6 个）
+  costs: [1000, 2000, 4000, 8000, 16000, 32000]
+  # 重置装备属性费用
+  reset-cost: 5000
+  # 修复装备耐久费用
+  repair-cost: 1000
+
+# ---------------- 强化设置 ----------------
+enhance:
+  # 最大强化等级
+  max-level: 6
+  # 第 1~6 次强化的成功率（百分比，必须为 6 个）
+  success-rates: [90, 80, 70, 60, 50, 40]
+  # 词条等级 1~5 的随机权重（百分比），权重越大越容易出
+  affix-level-chances: [50, 30, 10, 7, 3]
+
+# ---------------- 至纯源石（由下界之星改来的特殊物品） ----------------
+dragon-tear:
+  # 基础物品（请保持下界之星）
+  material: GLOWSTONE
+  # 显示名称
+  name: "&b&l至纯源石"
+  # 描述
+  lore:
+    - "&7末影龙陨落时留下的至纯源石..."
+    - "&7用于第 5、6 次装备强化。"
+  # 自定义模型数据（用于贴图，可选）
+  custom-model-data: 10001
+  # 每击杀一只末影龙掉落数量
+  drop-amount: 1
+  # 第 5、6 次强化各需要消耗的至纯源石数量
+  required-amount: 1
+  # 需要至纯源石的强化次数（第 1 次=1，第 5 次=5）
+  required-for-levels: [5, 6]
+
+# ---------------- 战斗效果参数 ----------------
+combat:
+  # 概率类词条叠加上限（百分比）
+  chance-cap: 90
+  # 减伤类词条叠加上限（百分比）
+  defense-cap: 80
+  # 雷击的基础伤害（雷击伤害词条会在其上额外增加）
+  lightning-base-damage: 5
+
+# ---------------- 强化界面 ----------------
+gui:
+  # 界面标题
+  title: "&8装备强化"
+
+# ---------------- 提示消息 ----------------
+messages:
+  no-permission: "&c你没有权限执行此命令。"
+  not-player: "&c该命令只能由玩家执行。"
+  player-not-found: "&c找不到该玩家。"
+  gui-opened: "&a已打开装备强化界面。"
+  no-economy: "&c服务器未接入经济插件（Vault），暂时无法强化。"
+  not-enough-money: "&c余额不足！强化需要 &6%cost% %currency%。"
+  not-enough-tears: "&c至纯源石不足！本次强化需要 &b%amount% 个至纯源石。"
+  no-item: "&c请先在界面中间放入要强化的物品。"
+  single-item-only: "&c每次只能处理 1 个物品，请拆分后再放入。"
+  enhance-success: "&a强化成功！获得词条 &f%affix% &7Lv.%level%"
+  enhance-fail: "&c强化失败，材料已消耗，词条保持不变。"
+  max-level: "&c该物品已达到最大强化等级！"
+  reloaded: "&a配置已重载。"
+  gave-tears: "&a已给予 &f%player% &a%amount% 个至纯源石。"
+  reset-success: "&a已重置装备属性，消耗 &6%cost% %currency%。"
+  repair-success: "&a已修复装备耐久，消耗 &6%cost% %currency%。"
+  no-enhancement: "&c该物品没有强化属性，无需重置。"
+  not-damaged: "&c该物品耐久已满，无需修复。"
+  not-repairable: "&c该物品没有耐久，无法修复。"
+  dodge: "&7你闪避了攻击！"
+  reflect: "&e你反弹了攻击！"
+  execute: "&c触发斩杀！"
+  bleed: "&c你正在流血！"
+
+# ---------------- 词条设置 ----------------
+# values: 词条等级 1~5 的数值
+# extra : 词条等级 1~5 的次要数值（部分词条使用，见注释）
+# duration: 状态效果持续时间（秒，0 表示不使用状态效果）
+# 触发概率类词条：Lv1=5%，Lv5=20%，随等级递增
+affixes:
+  true_damage:
+    enabled: true
+    name: "真实伤害"
+    # 每次攻击额外造成的真实伤害（无视护甲与防御）
+    values: [1, 2, 4, 7, 10]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  physical_damage:
+    enabled: true
+    name: "物理伤害"
+    # 物理伤害加成（百分比）
+    values: [10, 18, 28, 40, 55]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  physical_defense:
+    enabled: true
+    name: "物理防御"
+    # 受到物理伤害减免（百分比，叠加上限见 combat.defense-cap）
+    values: [3, 6, 10, 15, 22]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  crit_chance:
+    enabled: true
+    name: "暴击几率"
+    # 暴击概率（百分比）
+    values: [5, 8, 12, 16, 20]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  crit_damage:
+    enabled: true
+    name: "暴击伤害"
+    # 暴击时在基础 1.5 倍之上额外增加的伤害（百分比）
+    values: [15, 30, 50, 75, 100]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  freeze_chance:
+    enabled: true
+    name: "冰冻几率"
+    # 攻击时冰冻目标的概率（百分比），冰冻 = 强力缓慢 + 冰冻效果
+    values: [5, 8, 12, 16, 20]
+    extra: [0, 0, 0, 0, 0]
+    duration: 3
+  bleed_chance:
+    enabled: true
+    name: "流血几率"
+    # 攻击时使目标流血的概率（百分比），extra 为每秒流血伤害
+    values: [5, 8, 12, 16, 20]
+    extra: [2, 3, 4, 6, 8]
+    duration: 5
+  blind_chance:
+    enabled: true
+    name: "致盲几率"
+    # 攻击时致盲目标的概率（百分比）
+    values: [5, 8, 12, 16, 20]
+    extra: [0, 0, 0, 0, 0]
+    duration: 5
+  dodge_chance:
+    enabled: true
+    name: "闪避几率"
+    # 受到攻击时完全闪避的概率（百分比）
+    values: [5, 8, 12, 16, 20]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  levitation_chance:
+    enabled: true
+    name: "漂浮几率"
+    # 攻击时使目标漂浮的概率（百分比）
+    values: [5, 8, 12, 16, 20]
+    extra: [0, 0, 0, 0, 0]
+    duration: 2
+  reflect_chance:
+    enabled: true
+    name: "反弹几率"
+    # 受到攻击时反弹伤害的概率（百分比），extra 为反弹比例（百分比）
+    values: [5, 8, 12, 16, 20]
+    extra: [40, 50, 60, 70, 85]
+    duration: 0
+  ranged_damage:
+    enabled: true
+    name: "远程伤害"
+    # 远程伤害加成（百分比）
+    values: [10, 18, 28, 40, 55]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  melee_damage:
+    enabled: true
+    name: "近战伤害"
+    # 近战伤害加成（百分比）
+    values: [10, 18, 28, 40, 55]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  ranged_defense:
+    enabled: true
+    name: "远程防御"
+    # 受到远程伤害减免（百分比）
+    values: [3, 6, 10, 15, 22]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  melee_defense:
+    enabled: true
+    name: "近战防御"
+    # 受到近战伤害减免（百分比）
+    values: [3, 6, 10, 15, 22]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  stun_chance:
+    enabled: true
+    name: "眩晕几率"
+    # 攻击时眩晕目标的概率（百分比），眩晕 = 强力缓慢 + 虚弱
+    values: [5, 8, 12, 16, 20]
+    extra: [0, 0, 0, 0, 0]
+    duration: 1.5
+  lightning_chance:
+    enabled: true
+    name: "雷击几率"
+    # 攻击时召唤闪电的概率（百分比）
+    values: [5, 8, 12, 16, 20]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  weakness_chance:
+    enabled: true
+    name: "虚弱几率"
+    # 攻击时使目标虚弱的概率（百分比）
+    values: [5, 8, 12, 16, 20]
+    extra: [0, 0, 0, 0, 0]
+    duration: 5
+  knockback_chance:
+    enabled: true
+    name: "击飞几率"
+    # 攻击时附加击退的概率（百分比），extra 为击退力度倍率
+    values: [5, 8, 12, 16, 20]
+    extra: [2.0, 2.4, 2.8, 3.2, 3.6]
+    duration: 0
+  confusion_chance:
+    enabled: true
+    name: "混乱几率"
+    # 攻击时使目标混乱（反胃）的概率（百分比）
+    values: [5, 8, 12, 16, 20]
+    extra: [0, 0, 0, 0, 0]
+    duration: 5
+  lightning_damage:
+    enabled: true
+    name: "雷击伤害"
+    # 每次攻击额外造成的雷击伤害，并增强雷击的伤害
+    values: [2, 4, 7, 10, 14]
+    extra: [0, 0, 0, 0, 0]
+    duration: 0
+  execute_chance:
+    enabled: true
+    name: "斩杀几率"
+    # 攻击时斩杀目标的概率（百分比），extra 为斩杀血量阈值（百分比）
+    # 目标血量低于阈值时触发秒杀
+    values: [5, 8, 12, 16, 20]
+    extra: [25, 30, 35, 40, 45]
+    duration: 0
