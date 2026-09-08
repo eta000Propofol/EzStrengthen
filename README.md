@@ -20,6 +20,7 @@
   - 关闭界面时物品会自动返还背包。
 - `/st reload`：重载配置（权限 `ezstrengthen.admin`）。
 - /st give <玩家> <数量>：给玩家发放至纯源石（权限 ezstrengthen.admin）。
+- /st stamp <玩家> <词条id:等级> ...：把操作者手持的物品按指定词条生成强化版并交给目标玩家（权限 ezstrengthen.admin），用于找回丢失的强化装备。
 
 ## 玩法规则
 

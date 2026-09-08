@@ -2,6 +2,8 @@ package com.ezstrengthen.command;
 
 import com.ezstrengthen.EzStrengthen;
 import com.ezstrengthen.gui.EnhanceGui;
+import com.ezstrengthen.model.AffixInstance;
+import com.ezstrengthen.model.EnhanceData;
 import com.ezstrengthen.util.ItemUtil;
 import com.ezstrengthen.util.Text;
 import org.bukkit.Bukkit;
@@ -18,9 +20,10 @@ import java.util.Map;
 
 /**
  * 命令：
- * /st                打开强化界面
- * /st reload         重载配置
- * /st give <玩家> <数量>  发放至纯源石
+ * /st                          打开强化界面
+ * /st reload                   重载配置
+ * /st give <玩家> <数量>        发放至纯源石
+ * /st stamp <玩家> <词条id:等级>...  把手上的物品生成强化版交给玩家（管理员）
  */
 public class StrengthenCommand implements CommandExecutor, TabCompleter {
 
@@ -88,7 +91,55 @@ public class StrengthenCommand implements CommandExecutor, TabCompleter {
                         .replace("%player%", target.getName())
                         .replace("%amount%", String.valueOf(amount))));
             }
-            default -> sender.sendMessage(Text.color("&c用法: /st | /st reload | /st give <玩家> <数量>"));
+            case "stamp" -> {
+                if (!sender.hasPermission("ezstrengthen.admin")) {
+                    sender.sendMessage(Text.color(plugin.getMessage("no-permission")));
+                    return true;
+                }
+                if (!(sender instanceof Player admin)) {
+                    sender.sendMessage(Text.color(plugin.getMessage("not-player")));
+                    return true;
+                }
+                if (args.length < 2) {
+                    sender.sendMessage(Text.color("&c用法: /st stamp <玩家> <词条id:等级> [词条id:等级 ...]"));
+                    return true;
+                }
+                Player target = Bukkit.getPlayer(args[1]);
+                if (target == null) {
+                    sender.sendMessage(Text.color(plugin.getMessage("player-not-found")));
+                    return true;
+                }
+                ItemStack base = admin.getInventory().getItemInMainHand();
+                if (base == null || base.getType().isAir()) {
+                    sender.sendMessage(Text.color(plugin.getMessage("no-item-hand")));
+                    return true;
+                }
+                List<AffixInstance> affixes = new ArrayList<>();
+                for (int i = 2; i < args.length; i++) {
+                    AffixInstance inst = AffixInstance.parse(args[i]);
+                    if (inst == null || plugin.getAffixConfig(inst.getId()) == null) {
+                        sender.sendMessage(Text.color("&c无效词条: " + args[i] + "（格式: 词条id:等级，等级 1~5）"));
+                        return true;
+                    }
+                    affixes.add(inst);
+                }
+                int max = plugin.getMaxLevel();
+                if (affixes.isEmpty() || affixes.size() > max) {
+                    sender.sendMessage(Text.color("&c词条数量需为 1~" + max + " 个。"));
+                    return true;
+                }
+                EnhanceData data = new EnhanceData(affixes.size(), affixes);
+                ItemStack copy = base.clone();
+                ItemUtil.setEnhanceData(copy, data);
+                Map<Integer, ItemStack> leftover = target.getInventory().addItem(copy);
+                for (ItemStack rest : leftover.values()) {
+                    target.getWorld().dropItemNaturally(target.getLocation(), rest);
+                }
+                sender.sendMessage(Text.color(plugin.getMessage("stamp-success")
+                        .replace("%player%", target.getName())
+                        .replace("%count%", String.valueOf(affixes.size()))));
+            }
+            default -> sender.sendMessage(Text.color("&c用法: /st | /st reload | /st give <玩家> <数量> | /st stamp <玩家> <词条:等级> ..."));
         }
         return true;
     }
@@ -100,8 +151,9 @@ public class StrengthenCommand implements CommandExecutor, TabCompleter {
             if (sender.hasPermission("ezstrengthen.admin")) {
                 result.add("reload");
                 result.add("give");
+                result.add("stamp");
             }
-        } else if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
+        } else if (args.length == 2 && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("stamp"))) {
             for (Player online : Bukkit.getOnlinePlayers()) {
                 result.add(online.getName());
             }

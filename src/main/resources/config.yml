@@ -68,6 +68,8 @@ messages:
   not-enough-tears: "&c至纯源石不足！本次强化需要 &b%amount% 个至纯源石。"
   no-item: "&c请先在界面中间放入要强化的物品。"
   single-item-only: "&c每次只能处理 1 个物品，请拆分后再放入。"
+  no-item-hand: "&c请手持要作为基础的物品。"
+  stamp-success: "&a已将强化属性附加到物品并交给 &f%player%&a（共 %count% 条词条）。"
   enhance-success: "&a强化成功！获得词条 &f%affix% &7Lv.%level%"
   enhance-fail: "&c强化失败，材料已消耗，词条保持不变。"
   max-level: "&c该物品已达到最大强化等级！"
