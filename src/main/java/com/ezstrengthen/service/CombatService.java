@@ -6,6 +6,8 @@ import com.ezstrengthen.util.Text;
 import org.bukkit.GameMode;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -78,7 +80,7 @@ public class CombatService {
 
         if (def.reflectChance > 0 && random.nextDouble() < def.reflectChance) {
             double reflected = damage * def.reflectPctMax / 100.0;
-            damageTrue(attacker, reflected);
+            damageTrue(attacker, reflected, victim);
             sendActionBar(victim, plugin.getMessage("reflect"));
             spawnParticles(attacker, Particle.ENCHANT, 25);
             if (attacker instanceof Player p) {
@@ -89,7 +91,7 @@ public class CombatService {
         // ---- 命中后的攻击方效果 ----
         if (!event.isCancelled() && !victim.isDead() && victim.isValid()) {
             if (atk.trueDamage > 0) {
-                damageTrue(victim, atk.trueDamage);
+                damageTrue(victim, atk.trueDamage, attacker);
             }
             applyProcs(attacker, victim, atk);
         }
@@ -102,7 +104,7 @@ public class CombatService {
             victim.setFreezeTicks(80);
         }
         if (chance(atk.bleedChance)) {
-            startBleed(victim, atk.bleedDpsMax);
+            startBleed(victim, atk.bleedDpsMax, attacker);
         }
         if (chance(atk.blindChance)) {
             applyEffect(victim, PotionEffectType.BLINDNESS, duration("blind_chance"), 0);
@@ -128,7 +130,7 @@ public class CombatService {
             knockback(attacker, victim, atk.knockbackMultMax);
         }
         if (chance(atk.executeChance)) {
-            execute(victim, atk.executeThresholdMax);
+            execute(victim, atk.executeThresholdMax, attacker);
         }
     }
 
@@ -154,7 +156,7 @@ public class CombatService {
         Location loc = victim.getLocation();
         victim.getWorld().strikeLightningEffect(loc);
         double base = plugin.getConfig().getDouble("combat.lightning-base-damage", 5);
-        damageTrue(victim, base + lightningDamageBonus);
+        damageTrue(victim, base + lightningDamageBonus, attacker);
         sendActionBar(victim, "&e你被雷击了！");
         if (attacker instanceof Player p) {
             p.playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1, 1);
@@ -176,28 +178,34 @@ public class CombatService {
     }
 
     /** 斩杀：目标血量低于阈值时直接击杀。 */
-    private void execute(LivingEntity victim, double thresholdPct) {
+    private void execute(LivingEntity victim, double thresholdPct, LivingEntity source) {
         if (thresholdPct <= 0 || victim.isDead()) {
             return;
         }
         double maxHealth = maxHealthOf(victim);
         double threshold = maxHealth * Math.min(100, thresholdPct) / 100.0;
         if (victim.getHealth() <= threshold) {
-            damageTrue(victim, maxHealth * 1000);
+            damageTrue(victim, maxHealth * 1000, source);
             sendActionBar(victim, plugin.getMessage("execute"));
             spawnParticles(victim, Particle.ENCHANT, 40);
         }
     }
 
-    /**
-     * 真实伤害：直接扣除生命值，无视护甲、防御词条与吸收。
-     */
     /** 获取实体最大生命值。 */
     private double maxHealthOf(LivingEntity entity) {
         AttributeInstance attr = entity.getAttribute(Attribute.MAX_HEALTH);
         return attr == null ? 20 : attr.getValue();
     }
+
+    /**
+     * 真实伤害：通过原版伤害事件扣除生命值，无视护甲、防御词条、吸收与无敌帧。
+     * 使用伤害事件而非 setHealth 可确保正常触发死亡、击杀归属、经验和掉落逻辑。
+     */
     public void damageTrue(LivingEntity victim, double amount) {
+        damageTrue(victim, amount, null);
+    }
+
+    public void damageTrue(LivingEntity victim, double amount, LivingEntity source) {
         if (victim == null || victim.isDead() || !victim.isValid() || amount <= 0) {
             return;
         }
@@ -207,23 +215,28 @@ public class CombatService {
                 return;
             }
         }
-        victim.setHealth(Math.max(0, victim.getHealth() - amount));
+
+        DamageSource.Builder damageSource = DamageSource.builder(DamageType.GENERIC_KILL);
+        if (source != null && source.isValid() && !source.isDead()) {
+            damageSource.withCausingEntity(source).withDirectEntity(source);
+        }
+        victim.damage(amount, damageSource.build());
     }
 
     // ---------------- 流血 ----------------
 
     /** 开始流血效果；已流血则刷新持续时间和伤害。 */
-    public void startBleed(LivingEntity victim, double dps) {
+    public void startBleed(LivingEntity victim, double dps, LivingEntity source) {
         if (victim == null || victim.isDead() || dps <= 0) {
             return;
         }
         UUID id = victim.getUniqueId();
         BleedTask existing = bleedTasks.get(id);
         if (existing != null) {
-            existing.refresh(dps);
+            existing.refresh(dps, source);
             return;
         }
-        BleedTask task = new BleedTask(victim, dps);
+        BleedTask task = new BleedTask(victim, dps, source);
         bleedTasks.put(id, task);
         task.runTaskTimer(plugin, 0L, 20L);
         sendActionBar(victim, plugin.getMessage("bleed"));
@@ -243,16 +256,21 @@ public class CombatService {
     private class BleedTask extends BukkitRunnable {
         private final LivingEntity victim;
         private double dps;
+        private LivingEntity source;
         private int remaining;
 
-        BleedTask(LivingEntity victim, double dps) {
+        BleedTask(LivingEntity victim, double dps, LivingEntity source) {
             this.victim = victim;
             this.dps = dps;
+            this.source = source;
             this.remaining = (int) Math.max(1, Math.ceil(duration("bleed_chance")));
         }
 
-        void refresh(double newDps) {
+        void refresh(double newDps, LivingEntity newSource) {
             this.dps = Math.max(this.dps, newDps);
+            if (newSource != null) {
+                this.source = newSource;
+            }
             this.remaining = (int) Math.max(1, Math.ceil(duration("bleed_chance")));
         }
 
@@ -263,7 +281,7 @@ public class CombatService {
                 bleedTasks.remove(victim.getUniqueId());
                 return;
             }
-            damageTrue(victim, dps);
+            damageTrue(victim, dps, source);
             spawnParticles(victim, Particle.DAMAGE_INDICATOR, 10);
             remaining--;
             if (remaining <= 0) {
