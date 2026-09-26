@@ -3,6 +3,7 @@ package com.ezstrengthen.service;
 import com.ezstrengthen.EzStrengthen;
 import com.ezstrengthen.model.EquipmentStats;
 import com.ezstrengthen.util.Text;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -202,7 +203,8 @@ public class CombatService {
 
     /**
      * 真实伤害：通过原版伤害事件扣除生命值，无视护甲、防御词条、吸收与无敌帧。
-     * 使用伤害事件而非 setHealth 可确保正常触发死亡、击杀归属、经验和掉落逻辑。
+     * 延迟到下一 tick 结算，避免与外层攻击伤害在同一 tick 内重复触发死亡。
+     * 使用伤害事件而非 setHealth 可确保正常触发击杀归属、经验和掉落逻辑。
      */
     public void damageTrue(LivingEntity victim, double amount) {
         damageTrue(victim, amount, null);
@@ -215,6 +217,14 @@ public class CombatService {
 
     public void damageTrue(LivingEntity victim, double amount, LivingEntity source) {
         if (victim == null || victim.isDead() || !victim.isValid() || amount <= 0) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTask(plugin, () -> applyTrueDamage(victim, amount, source));
+    }
+
+    private void applyTrueDamage(LivingEntity victim, double amount, LivingEntity source) {
+        if (victim.isDead() || !victim.isValid() || amount <= 0) {
             return;
         }
         if (victim instanceof Player player) {
