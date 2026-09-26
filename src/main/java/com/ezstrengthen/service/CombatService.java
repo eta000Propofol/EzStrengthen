@@ -23,9 +23,11 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -38,6 +40,7 @@ public class CombatService {
     private final EzStrengthen plugin;
     private final Random random = new Random();
     private final Map<UUID, BleedTask> bleedTasks = new HashMap<>();
+    private final Set<UUID> internalDamageVictims = new HashSet<>();
 
     public CombatService(EzStrengthen plugin) {
         this.plugin = plugin;
@@ -205,6 +208,11 @@ public class CombatService {
         damageTrue(victim, amount, null);
     }
 
+    /** 判断实体是否正在接收插件内部结算的真实伤害。 */
+    public boolean isInternalDamage(LivingEntity entity) {
+        return entity != null && internalDamageVictims.contains(entity.getUniqueId());
+    }
+
     public void damageTrue(LivingEntity victim, double amount, LivingEntity source) {
         if (victim == null || victim.isDead() || !victim.isValid() || amount <= 0) {
             return;
@@ -220,7 +228,14 @@ public class CombatService {
         if (source != null && source.isValid() && !source.isDead()) {
             damageSource.withCausingEntity(source).withDirectEntity(source);
         }
-        victim.damage(amount, damageSource.build());
+
+        UUID victimId = victim.getUniqueId();
+        internalDamageVictims.add(victimId);
+        try {
+            victim.damage(amount, damageSource.build());
+        } finally {
+            internalDamageVictims.remove(victimId);
+        }
     }
 
     // ---------------- 流血 ----------------

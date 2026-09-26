@@ -27,6 +27,9 @@ public class CombatListener implements Listener {
         if (!(event.getEntity() instanceof LivingEntity victim)) {
             return;
         }
+        if (plugin.getCombatService().isInternalDamage(victim)) {
+            return;
+        }
         DamageCause cause = event.getCause();
         LivingEntity attacker = null;
         boolean ranged = false;

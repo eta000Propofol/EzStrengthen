@@ -9,7 +9,7 @@
 1. 服务器安装 [Paper 26.1.2](https://papermc.io/downloads)（需 Java 25+）。
 2. 安装 [Vault](https://www.spigotmc.org/resources/vault.34315/) 以及任意经济插件
    （如 EssentialsX / CMI / 其他支持 Vault 的经济插件）。
-3. 把 `build/libs/EzStrengthen-1.0.0.jar` 放入服务器的 `plugins` 文件夹。
+3. 把 `build/libs/EzStrengthen-<version>.jar` 放入服务器的 `plugins` 文件夹。
 4. 启动服务器，插件会自动生成 `plugins/EzStrengthen/config.yml`。
 5. 修改配置后执行 `/st reload` 重载。
 
@@ -50,4 +50,4 @@
 gradlew.bat build
 ```
 
-产物位于 `build/libs/EzStrengthen-1.0.0.jar`。
+产物位于 `build/libs/EzStrengthen-<version>.jar`。
