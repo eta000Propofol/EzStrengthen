@@ -27,6 +27,8 @@ public final class ItemUtil {
     private static final String DATA_KEY = "data";
     private static final String TEAR_KEY = "dragon_tear";
     private static final String BASE_LORE_KEY = "base_lore";
+    private static final String BASE_LORE_FORMAT_KEY = "base_lore_format";
+    private static final String BASE_LORE_FORMAT_JSON = "json";
 
     private ItemUtil() {
     }
@@ -69,6 +71,9 @@ public final class ItemUtil {
             }
             pdc.set(new org.bukkit.NamespacedKey(EzStrengthen.instance(), BASE_LORE_KEY),
                     PersistentDataType.LIST.strings(), base);
+            // 显式标记存档格式，读取时据此选择反序列化器（旧版无标记按 legacy 处理）
+            pdc.set(new org.bukkit.NamespacedKey(EzStrengthen.instance(), BASE_LORE_FORMAT_KEY),
+                    PersistentDataType.STRING, BASE_LORE_FORMAT_JSON);
         }
         pdc.set(new org.bukkit.NamespacedKey(EzStrengthen.instance(), DATA_KEY),
                 PersistentDataType.STRING, data.serialize());
@@ -76,13 +81,13 @@ public final class ItemUtil {
         item.setItemMeta(meta);
     }
 
-    /** 反序列化原始描述行：JSON（无损格式）优先，失败时回退旧版的 legacy § 字符串。 */
-    private static Component deserializeBaseLine(String line) {
-        // gson 对无样式纯文本输出字符串标量（"开头），带样式的输出对象（{开头）
-        if (line != null && (line.startsWith("{") || line.startsWith("\""))) {
+    /** 反序列化原始描述行；json 为 false 时按旧版 legacy § 字符串处理。 */
+    private static Component deserializeBaseLine(String line, boolean json) {
+        if (json) {
             try {
                 return Text.fromJson(line);
             } catch (Exception ignored) {
+                // 存档损坏时退回 legacy 解析，避免刷新描述的常规路径抛异常
             }
         }
         return LegacyComponentSerializer.legacySection().deserialize(line == null ? "" : line);
@@ -91,12 +96,14 @@ public final class ItemUtil {
     /** 根据强化数据生成描述：原始描述 + 强化等级行 + 词条行。 */
     private static List<Component> buildLore(ItemMeta meta, EnhanceData data) {
         List<Component> lore = new ArrayList<>();
-        List<String> base = meta.getPersistentDataContainer().get(
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        boolean json = isJsonBaseLore(pdc);
+        List<String> base = pdc.get(
                 new org.bukkit.NamespacedKey(EzStrengthen.instance(), BASE_LORE_KEY),
                 PersistentDataType.LIST.strings());
         if (base != null) {
             for (String line : base) {
-                lore.add(deserializeBaseLine(line));
+                lore.add(deserializeBaseLine(line, json));
             }
         }
         if (data.getCount() > 0) {
@@ -170,20 +177,32 @@ public final class ItemUtil {
             return;
         }
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        boolean json = isJsonBaseLore(pdc);
         List<String> base = pdc.get(new org.bukkit.NamespacedKey(EzStrengthen.instance(), BASE_LORE_KEY),
                 PersistentDataType.LIST.strings());
-        pdc.remove(new org.bukkit.NamespacedKey(EzStrengthen.instance(), DATA_KEY));
-        pdc.remove(new org.bukkit.NamespacedKey(EzStrengthen.instance(), BASE_LORE_KEY));
+        org.bukkit.NamespacedKey dataKey = new org.bukkit.NamespacedKey(EzStrengthen.instance(), DATA_KEY);
+        org.bukkit.NamespacedKey baseKey = new org.bukkit.NamespacedKey(EzStrengthen.instance(), BASE_LORE_KEY);
+        org.bukkit.NamespacedKey formatKey = new org.bukkit.NamespacedKey(EzStrengthen.instance(), BASE_LORE_FORMAT_KEY);
+        pdc.remove(dataKey);
+        pdc.remove(baseKey);
+        pdc.remove(formatKey);
         if (base == null || base.isEmpty()) {
             meta.lore(null);
         } else {
             List<Component> lore = new ArrayList<>();
             for (String line : base) {
-                lore.add(deserializeBaseLine(line));
+                lore.add(deserializeBaseLine(line, json));
             }
             meta.lore(lore);
         }
         item.setItemMeta(meta);
+    }
+
+    /** 原始描述是否为 JSON 格式存档（旧版本无标记，按 legacy 处理）。 */
+    private static boolean isJsonBaseLore(PersistentDataContainer pdc) {
+        return BASE_LORE_FORMAT_JSON.equals(pdc.get(
+                new org.bukkit.NamespacedKey(EzStrengthen.instance(), BASE_LORE_FORMAT_KEY),
+                PersistentDataType.STRING));
     }
 
     // ---------------- 至纯源石 ----------------

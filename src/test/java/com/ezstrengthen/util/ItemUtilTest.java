@@ -134,13 +134,25 @@ class ItemUtilTest {
 
     @Test
     void legacyBaseLoreStillReadsAfterUpgrade() {
-        // 模拟旧版本物品：base lore 以 legacy § 字符串存档
+        // 模拟旧版本物品：base lore 以 legacy § 字符串存档，无格式标记
         pdc.set(new NamespacedKey(plugin, "base_lore"), PersistentDataType.LIST.strings(),
                 List.of("§a旧的legacy描述", ""));
         ItemUtil.setEnhanceData(item, new EnhanceData(1, List.of()));
 
         assertEquals(LegacyComponentSerializer.legacySection()
                 .deserialize("§a旧的legacy描述"), currentLore.get(0));
+    }
+
+    @Test
+    void quotedLegacyLinesAreNotMisdetectedAsJson() {
+        // legacy 描述行字面以引号开头（如引号包裹的名字）且恰好是合法 JSON 字符串时，
+        // 必须按 legacy 原样读回，不能因 JSON 启发式剥掉引号
+        pdc.set(new NamespacedKey(plugin, "base_lore"), PersistentDataType.LIST.strings(),
+                List.of("\"屠龙宝刀\""));
+        ItemUtil.setEnhanceData(item, new EnhanceData(1, List.of()));
+
+        Component line = currentLore.get(0);
+        assertEquals("\"屠龙宝刀\"", LegacyComponentSerializer.legacySection().serialize(line));
     }
 
     @Test
@@ -155,6 +167,7 @@ class ItemUtilTest {
         }
         assertFalse(pdc.has(new NamespacedKey(plugin, "data"), PersistentDataType.STRING));
         assertFalse(pdc.has(new NamespacedKey(plugin, "base_lore"), PersistentDataType.LIST.strings()));
+        assertFalse(pdc.has(new NamespacedKey(plugin, "base_lore_format"), PersistentDataType.STRING));
     }
 
     /** 内存版 PersistentDataContainer：只做存取，不涉及字节编码。 */

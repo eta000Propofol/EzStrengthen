@@ -20,14 +20,6 @@ public final class Text {
         return LegacyComponentSerializer.legacyAmpersand().deserialize(text);
     }
 
-    /** 把组件转回带 § 颜色代码的字符串（会丢失 hex 颜色与高级组件，不要用于持久化）。 */
-    public static String toLegacy(Component component) {
-        if (component == null) {
-            return "";
-        }
-        return LegacyComponentSerializer.legacySection().serialize(component);
-    }
-
     /** 把组件无损序列化为 JSON（保留 hex 颜色、translatable、hover 等全部组件语义）。 */
     public static String toJson(Component component) {
         return GsonComponentSerializer.gson().serialize(component);
