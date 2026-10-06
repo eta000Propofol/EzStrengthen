@@ -15,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.logging.Logger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,7 +48,7 @@ class EconomyServiceTest {
     void setUp() {
         when(plugin.getServer()).thenReturn(server);
         when(server.getPluginManager()).thenReturn(pluginManager);
-        when(plugin.getLogger()).thenReturn(java.util.logging.Logger.getLogger("EconomyServiceTest"));
+        when(plugin.getLogger()).thenReturn(Logger.getLogger("EconomyServiceTest"));
     }
 
     @Test
@@ -66,6 +68,8 @@ class EconomyServiceTest {
         // 下一次使用前重试解析，自动接入并完成结算
         when(economy.getName()).thenReturn("Essentials");
         assertTrue(service.isAvailable());
+        // 晚接入成功后必须刷新已打开的界面，费用显示与结算同步可用
+        verify(plugin).refreshAllOnline();
         when(economy.format(5.0)).thenReturn("$5");
         assertEquals("$5", service.format(5.0));
         when(economy.withdrawPlayer(player, 5.0)).thenReturn(new EconomyResponse(5.0, 95.0, EconomyResponse.ResponseType.SUCCESS, null));

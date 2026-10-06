@@ -40,6 +40,8 @@ public class EconomyService {
             if (provider != null && provider.getProvider() != null) {
                 economy = provider.getProvider();
                 plugin.getLogger().info("已接入 Vault 经济插件: " + economy.getName());
+                // 接入瞬间刷新已打开的界面与物品描述，费用显示与结算同步可用
+                plugin.refreshAllOnline();
             }
         } catch (Throwable t) {
             economy = null;
