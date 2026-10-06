@@ -34,7 +34,7 @@
 
 1. 服务器安装 Paper 26.1.2（需 Java 25+）。
 2. 安装 Vault 以及任意经济插件（如 EssentialsX / CMI / 其他支持 Vault 的经济插件）。
-3. 把 `build/libs/EzStrengthen-<版本>.jar` 放入服务器的 `plugins` 文件夹。
+3. 从 [Releases](https://github.com/eta000Propofol/EzStrengthen/releases/latest) 下载 `EzStrengthen-<版本>.jar`，放入服务器的 `plugins` 文件夹。
 4. 启动服务器，插件会自动生成 `plugins/EzStrengthen/config.yml`。
 5. 修改配置后执行 `/st reload` 重载。
 
