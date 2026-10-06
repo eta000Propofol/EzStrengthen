@@ -36,6 +36,7 @@ public final class EzStrengthen extends JavaPlugin {
     private final Map<String, AffixConfig> affixConfigs = new LinkedHashMap<>();
     private List<AffixConfig> enabledAffixes = new ArrayList<>();
     private final Map<UUID, EnhanceGui> openGuis = new LinkedHashMap<>();
+    private int maxLevel;
 
     public static EzStrengthen instance() {
         return instance;
@@ -89,12 +90,30 @@ public final class EzStrengthen extends JavaPlugin {
     /** 重载配置并重新加载词条。 */
     public void reload() {
         reloadConfig();
+        maxLevel = computeMaxLevel();
         affixConfigs.clear();
         for (Affix affix : Affix.values()) {
             affixConfigs.put(affix.getId(), AffixConfig.load(getConfig(), affix));
         }
         enabledAffixes = affixConfigs.values().stream().filter(AffixConfig::isEnabled).toList();
         refreshAllOnline();
+    }
+
+    /** 有效最大强化等级：max-level 超过按次配置（economy.costs / enhance.success-rates）长度时钳制，避免超界强化免费且必成。 */
+    private int computeMaxLevel() {
+        int configured = Math.max(0, getConfig().getInt("enhance.max-level", 6));
+        int bounded = boundMaxLevel(configured,
+                getConfig().getDoubleList("economy.costs").size(),
+                getConfig().getDoubleList("enhance.success-rates").size());
+        if (bounded < configured) {
+            getLogger().warning("enhance.max-level=" + configured + " 超过 economy.costs / enhance.success-rates 的配置长度，实际最大强化等级按 " + bounded + " 处理。");
+        }
+        return bounded;
+    }
+
+    /** 按最短的按次配置列表钳制最大等级。 */
+    static int boundMaxLevel(int configuredMax, int costsSize, int ratesSize) {
+        return Math.min(configuredMax, Math.min(costsSize, ratesSize));
     }
 
     /** 刷新所有在线玩家身上/末影箱及打开中的强化界面里的装备描述。 */
@@ -130,8 +149,9 @@ public final class EzStrengthen extends JavaPlugin {
     }
     // ---------------- 配置访问 ----------------
 
+    /** 有效最大强化等级（reload 时按配置钳制）。 */
     public int getMaxLevel() {
-        return Math.max(1, getConfig().getInt("enhance.max-level", 6));
+        return maxLevel;
     }
 
     public double getChanceCap() {

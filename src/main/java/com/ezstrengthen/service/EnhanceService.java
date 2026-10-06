@@ -31,13 +31,13 @@ public class EnhanceService {
         this.plugin = plugin;
     }
 
-    /** 第 level 次（1 起）强化所需的货币。 */
+    /** 第 level 次（1 起）强化所需的货币；超过配置长度时沿用最后一档，绝不返回 0（免费）。 */
     public double getCost(int level) {
         List<Double> costs = plugin.getConfig().getDoubleList("economy.costs");
-        if (level >= 1 && level <= costs.size()) {
-            return costs.get(level - 1);
+        if (costs.isEmpty()) {
+            return 0;
         }
-        return 0;
+        return costs.get(Math.min(Math.max(level, 1), costs.size()) - 1);
     }
 
     /** 重置装备属性的费用。 */
@@ -50,13 +50,13 @@ public class EnhanceService {
         return plugin.getConfig().getDouble("economy.repair-cost", 1000);
     }
 
-    /** 第 level 次（1 起）强化的成功率（0~1）。 */
+    /** 第 level 次（1 起）强化的成功率（0~1）；超过配置长度时沿用最后一档。正常流程中最大等级已钳制到列表长度，空列表分支不可达。 */
     public double getSuccessRate(int level) {
         List<Double> rates = plugin.getConfig().getDoubleList("enhance.success-rates");
-        if (level >= 1 && level <= rates.size()) {
-            return Math.max(0, Math.min(1, rates.get(level - 1) / 100.0));
+        if (rates.isEmpty()) {
+            return 1;
         }
-        return 1;
+        return Math.max(0, Math.min(1, rates.get(Math.min(Math.max(level, 1), rates.size()) - 1) / 100.0));
     }
 
     /** 第 level 次（1 起）强化需要消耗的至纯源石数量。 */
