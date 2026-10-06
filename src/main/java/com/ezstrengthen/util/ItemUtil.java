@@ -207,7 +207,7 @@ public final class ItemUtil {
 
     // ---------------- 至纯源石 ----------------
 
-    /** 判断物品是否为至纯源石（由下界之星改来的特殊物品）。 */
+    /** 判断物品是否为至纯源石（由荧石改来的特殊物品）。 */
     public static boolean isDragonTear(ItemStack item) {
         if (item == null || item.isEmpty()) {
             return false;

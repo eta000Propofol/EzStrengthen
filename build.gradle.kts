@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.ezstrengthen"
-version = "1.1.11"
+version = "1.1.12"
 
 java {
     toolchain {
