@@ -81,6 +81,8 @@ gradlew.bat build
 ./gradlew build
 ```
 
+单元测试位于 `src/test/java`，可单独执行：`gradlew test`（Windows）或 `./gradlew test`。
+
 产物位于 `build/libs/EzStrengthen-<版本>.jar`。
 
 ## License

@@ -22,12 +22,22 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:26.1.2.build.74-stable")
     // Vault API（编译期，服务器需安装 Vault + 经济插件）
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
+    // 单元测试：JUnit 5 + Mockito（需 inline mock maker 模拟 final 的主类）
+    testImplementation("io.papermc.paper:paper-api:26.1.2.build.74-stable")
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.mockito:mockito-core:5.24.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.24.0")
 }
 
 tasks {
     compileJava {
         options.encoding = "UTF-8"
         options.compilerArgs.add("-Xlint:deprecation")
+    }
+    compileTestJava {
+        options.encoding = "UTF-8"
     }
     processResources {
         filesMatching("plugin.yml") {
@@ -36,5 +46,8 @@ tasks {
     }
     jar {
         archiveFileName.set("EzStrengthen-${project.version}.jar")
+    }
+    test {
+        useJUnitPlatform()
     }
 }
