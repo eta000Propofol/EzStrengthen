@@ -61,6 +61,8 @@ public class EnhanceData {
             } catch (NumberFormatException ignored) {
                 data.count = 0;
             }
+            // 防御伪造 NBT：负数 count 会让下次强化以负等级进入结算并使描述显示异常
+            data.count = Math.max(0, data.count);
         }
         if (parts.length > 1 && !parts[1].isEmpty()) {
             for (String token : parts[1].split(",")) {
