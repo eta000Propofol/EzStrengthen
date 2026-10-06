@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build and test
+        run: ./gradlew build
+
+      - name: Verify jar matches tag
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          JAR="build/libs/EzStrengthen-${TAG}.jar"
+          if [ ! -f "$JAR" ]; then
+            echo "::error::Tag v${TAG} 与构建产物不匹配（build/libs 内容：$(ls build/libs)）。请确认 build.gradle.kts 的 version 已同步后重新打 tag。"
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" --title "EzStrengthen ${GITHUB_REF_NAME}" --generate-notes "build/libs/EzStrengthen-${GITHUB_REF_NAME#v}.jar"
