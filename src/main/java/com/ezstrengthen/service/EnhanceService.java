@@ -106,7 +106,7 @@ public class EnhanceService {
      * 成功：增加词条并写入物品；失败：材料已消耗，物品不变。
      */
     public EnhanceResult attempt(Player player, ItemStack item) {
-        if (item == null || item.getType().isAir()) {
+        if (item == null || item.isEmpty()) {
             return EnhanceResult.NO_ITEM;
         }
         if (plugin.getEnabledAffixes().isEmpty()) {
@@ -130,7 +130,10 @@ public class EnhanceService {
         if (tears > 0 && ItemUtil.countDragonTears(player.getInventory()) < tears) {
             return EnhanceResult.NOT_ENOUGH_TEARS;
         }
-        plugin.getEconomyService().withdraw(player, cost);
+        if (!plugin.getEconomyService().withdraw(player, cost)) {
+            // has() 通过但扣款失败（经济实现异常或余额被并发变动）：中止强化，材料不消耗
+            return EnhanceResult.NOT_ENOUGH_MONEY;
+        }
         if (tears > 0) {
             ItemUtil.consumeDragonTears(player.getInventory(), tears);
         }
@@ -156,7 +159,7 @@ public class EnhanceService {
      * 需要消耗货币（economy.reset-cost，默认 5000）。
      */
     public EnhanceResult reset(Player player, ItemStack item) {
-        if (item == null || item.getType().isAir()) {
+        if (item == null || item.isEmpty()) {
             return EnhanceResult.NO_ITEM;
         }
         if (!plugin.getEconomyService().isAvailable()) {
@@ -170,7 +173,9 @@ public class EnhanceService {
         if (!plugin.getEconomyService().has(player, cost)) {
             return EnhanceResult.NOT_ENOUGH_MONEY;
         }
-        plugin.getEconomyService().withdraw(player, cost);
+        if (!plugin.getEconomyService().withdraw(player, cost)) {
+            return EnhanceResult.NOT_ENOUGH_MONEY;
+        }
         ItemUtil.clearEnhanceData(item);
         return EnhanceResult.RESET_SUCCESS;
     }
@@ -180,7 +185,7 @@ public class EnhanceService {
      * 需要消耗货币（economy.repair-cost，默认 5000）。
      */
     public EnhanceResult repair(Player player, ItemStack item) {
-        if (item == null || item.getType().isAir()) {
+        if (item == null || item.isEmpty()) {
             return EnhanceResult.NO_ITEM;
         }
         if (!plugin.getEconomyService().isAvailable()) {
@@ -197,7 +202,9 @@ public class EnhanceService {
         if (!plugin.getEconomyService().has(player, cost)) {
             return EnhanceResult.NOT_ENOUGH_MONEY;
         }
-        plugin.getEconomyService().withdraw(player, cost);
+        if (!plugin.getEconomyService().withdraw(player, cost)) {
+            return EnhanceResult.NOT_ENOUGH_MONEY;
+        }
         damageable.resetDamage();
         item.setItemMeta(damageable);
         return EnhanceResult.REPAIR_SUCCESS;
