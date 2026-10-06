@@ -105,7 +105,7 @@ public class GuiListener implements Listener {
         }
         if (event.getPlayer() instanceof Player player) {
             returnItem(player, gui);
-            plugin.unregisterOpenGui(player);
+            plugin.unregisterOpenGui(player, gui);
         }
     }
 
@@ -147,7 +147,7 @@ public class GuiListener implements Listener {
         EnhanceGui gui = plugin.getOpenGui(player);
         if (gui != null) {
             returnItem(player, gui);
-            plugin.unregisterOpenGui(player);
+            plugin.unregisterOpenGui(player, gui);
         }
         plugin.getCombatService().cleanup(player);
     }

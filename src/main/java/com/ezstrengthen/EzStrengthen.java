@@ -175,8 +175,9 @@ public final class EzStrengthen extends JavaPlugin {
         openGuis.put(player.getUniqueId(), gui);
     }
 
-    public void unregisterOpenGui(Player player) {
-        openGuis.remove(player.getUniqueId());
+    /** 注销玩家登记的强化界面；仅当登记的正是该界面时才移除，避免重复打开时误删新界面的登记。 */
+    public void unregisterOpenGui(Player player, EnhanceGui gui) {
+        openGuis.remove(player.getUniqueId(), gui);
     }
 
     public EnhanceGui getOpenGui(Player player) {
