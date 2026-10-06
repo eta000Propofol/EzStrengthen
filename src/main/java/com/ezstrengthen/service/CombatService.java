@@ -202,7 +202,9 @@ public class CombatService {
     }
 
     /**
-     * 真实伤害：通过原版伤害事件扣除生命值，无视护甲、防御词条、吸收与无敌帧。
+     * 真实伤害：通过原版伤害事件扣除生命值，无视护甲、防御词条与保护附魔。
+     * 使用 SONIC_BOOM 伤害类型：尊重无敌帧与不死图腾（图腾可挽救致命真伤）；
+     * 吸收与抗性效果会正常生效，这是原版伤害类型的固定语义。
      * 延迟到下一 tick 结算，避免与外层攻击伤害在同一 tick 内重复触发死亡。
      * 使用伤害事件而非 setHealth 可确保正常触发击杀归属、经验和掉落逻辑。
      */
@@ -234,7 +236,7 @@ public class CombatService {
             }
         }
 
-        DamageSource.Builder damageSource = DamageSource.builder(DamageType.GENERIC_KILL);
+        DamageSource.Builder damageSource = DamageSource.builder(DamageType.SONIC_BOOM);
         if (source != null && source.isValid() && !source.isDead()) {
             damageSource.withCausingEntity(source).withDirectEntity(source);
         }
