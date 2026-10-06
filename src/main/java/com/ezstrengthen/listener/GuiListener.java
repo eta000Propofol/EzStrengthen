@@ -38,11 +38,18 @@ public class GuiListener implements Listener {
             return;
         }
         Player player = (Player) event.getWhoClicked();
+        InventoryAction action = event.getAction();
         boolean top = event.getClickedInventory() == gui.getInventory();
         boolean bottom = event.getClickedInventory() == player.getInventory();
         boolean normal = !event.isShiftClick()
-                && event.getAction() != InventoryAction.HOTBAR_SWAP
-                && event.getAction() != InventoryAction.COLLECT_TO_CURSOR;
+                && action != InventoryAction.HOTBAR_SWAP
+                && action != InventoryAction.COLLECT_TO_CURSOR;
+
+        // 界面内按 Q 丢弃（含光标持有物品时）：物品掉落地面可能因超时消失，托管物品一律取消
+        if (top && (action == InventoryAction.DROP_ONE_CURSOR || action == InventoryAction.DROP_ALL_CURSOR)) {
+            event.setCancelled(true);
+            return;
+        }
 
         // 点击功能按钮：执行对应操作
         if (top && event.getSlot() == EnhanceGui.BUTTON_SLOT) {
@@ -60,12 +67,17 @@ public class GuiListener implements Listener {
             gui.onResetClick();
             return;
         }
+        // 物品槽按 Q 丢弃同样禁止，物品只能通过正常点取或关闭界面返还
+        if (top && event.getSlot() == EnhanceGui.ITEM_SLOT
+                && (action == InventoryAction.DROP_ONE_SLOT || action == InventoryAction.DROP_ALL_SLOT)) {
+            event.setCancelled(true);
+            return;
+        }
         // 允许在物品槽与玩家背包中正常点按（非 Shift / 非数字键 / 非双击收集）
         if (top && event.getSlot() == EnhanceGui.ITEM_SLOT && normal) {
             // 防止放入成组物品：一次强化只处理单个物品
             ItemStack cursor = event.getCursor();
             ItemStack current = event.getCurrentItem();
-            InventoryAction action = event.getAction();
             boolean willBeStack = false;
             if (action == InventoryAction.PLACE_ALL || action == InventoryAction.PLACE_SOME || action == InventoryAction.SWAP_WITH_CURSOR) {
                 willBeStack = cursor != null && !cursor.getType().isAir() && cursor.getAmount() > 1;

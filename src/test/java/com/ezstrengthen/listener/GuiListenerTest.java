@@ -4,6 +4,8 @@ import com.ezstrengthen.EzStrengthen;
 import com.ezstrengthen.gui.EnhanceGui;
 import com.ezstrengthen.service.CombatService;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
@@ -15,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.same;
@@ -71,6 +75,43 @@ class GuiListenerTest {
         new GuiListener(plugin).onClose(event);
 
         verifyNoInteractions(plugin);
+    }
+
+    @Test
+    void onClickDropsFromItemSlotAreCancelled() {
+        // 物品槽按 Q 丢弃：托管中的物品掉落地面可能因超时消失，必须取消
+        InventoryClickEvent event = mock(InventoryClickEvent.class);
+        when(event.getView()).thenReturn(view);
+        when(view.getTopInventory()).thenReturn(top);
+        when(top.getHolder()).thenReturn(gui);
+        when(event.getWhoClicked()).thenReturn(player);
+        when(event.getClickedInventory()).thenReturn(top);
+        when(gui.getInventory()).thenReturn(top);
+        when(event.getAction()).thenReturn(InventoryAction.DROP_ONE_SLOT);
+        when(event.getSlot()).thenReturn(EnhanceGui.ITEM_SLOT);
+
+        new GuiListener(plugin).onClick(event);
+
+        verify(event).setCancelled(true);
+    }
+
+    @Test
+    void onClickCursorDropsInGuiAreCancelled() {
+        // 光标持有物品时在界面上按 Q 丢弃，同样必须取消
+        InventoryClickEvent event = mock(InventoryClickEvent.class);
+        when(event.getView()).thenReturn(view);
+        when(view.getTopInventory()).thenReturn(top);
+        when(top.getHolder()).thenReturn(gui);
+        when(event.getWhoClicked()).thenReturn(player);
+        when(event.getClickedInventory()).thenReturn(top);
+        when(gui.getInventory()).thenReturn(top);
+        when(event.getAction()).thenReturn(InventoryAction.DROP_ONE_CURSOR);
+        // 守卫启用时不会读取 getSlot（提前返回），禁用时才会走到放行分支，故用 lenient
+        lenient().when(event.getSlot()).thenReturn(EnhanceGui.ITEM_SLOT);
+
+        new GuiListener(plugin).onClick(event);
+
+        verify(event).setCancelled(true);
     }
 
     @Test
