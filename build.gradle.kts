@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.ezstrengthen"
-version = "1.1.4"
+version = "1.1.5"
 
 java {
     toolchain {
@@ -24,6 +24,8 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     // 测试编译也需要 Bukkit API 类型
     testImplementation("io.papermc.paper:paper-api:26.1.2.build.74-stable")
+    // 测试模拟 Vault 经济接口
+    testImplementation("com.github.MilkBowl:VaultAPI:1.7.1")
     // 单元测试：JUnit 5 + Mockito（需 inline mock maker 模拟 final 的主类）
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
