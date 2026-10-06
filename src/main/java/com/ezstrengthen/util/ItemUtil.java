@@ -35,7 +35,7 @@ public final class ItemUtil {
 
     /** 读取物品上的强化数据；没有则返回空数据。 */
     public static EnhanceData getEnhanceData(ItemStack item) {
-        if (item == null || item.getType().isAir()) {
+        if (item == null || item.isEmpty()) {
             return new EnhanceData();
         }
         ItemMeta meta = item.getItemMeta();
@@ -50,7 +50,7 @@ public final class ItemUtil {
 
     /** 写入强化数据，并重建物品描述（保留原始描述 + 强化词条）。 */
     public static void setEnhanceData(ItemStack item, EnhanceData data) {
-        if (item == null || item.getType().isAir()) {
+        if (item == null || item.isEmpty()) {
             return;
         }
         ItemMeta meta = item.getItemMeta();
@@ -64,7 +64,7 @@ public final class ItemUtil {
             List<Component> existingLore = meta.lore();
             if (existingLore != null) {
                 for (Component line : existingLore) {
-                    base.add(Text.toLegacy(line));
+                    base.add(Text.toJson(line));
                 }
             }
             pdc.set(new org.bukkit.NamespacedKey(EzStrengthen.instance(), BASE_LORE_KEY),
@@ -76,6 +76,18 @@ public final class ItemUtil {
         item.setItemMeta(meta);
     }
 
+    /** 反序列化原始描述行：JSON（无损格式）优先，失败时回退旧版的 legacy § 字符串。 */
+    private static Component deserializeBaseLine(String line) {
+        // gson 对无样式纯文本输出字符串标量（"开头），带样式的输出对象（{开头）
+        if (line != null && (line.startsWith("{") || line.startsWith("\""))) {
+            try {
+                return Text.fromJson(line);
+            } catch (Exception ignored) {
+            }
+        }
+        return LegacyComponentSerializer.legacySection().deserialize(line == null ? "" : line);
+    }
+
     /** 根据强化数据生成描述：原始描述 + 强化等级行 + 词条行。 */
     private static List<Component> buildLore(ItemMeta meta, EnhanceData data) {
         List<Component> lore = new ArrayList<>();
@@ -84,7 +96,7 @@ public final class ItemUtil {
                 PersistentDataType.LIST.strings());
         if (base != null) {
             for (String line : base) {
-                lore.add(LegacyComponentSerializer.legacySection().deserialize(line));
+                lore.add(deserializeBaseLine(line));
             }
         }
         if (data.getCount() > 0) {
@@ -138,7 +150,7 @@ public final class ItemUtil {
 
     /** 若物品有强化数据，则按当前配置重新生成描述（不改动词条与等级）。 */
     public static void refreshLoreIfEnhanced(ItemStack item) {
-        if (item == null || item.getType().isAir()) {
+        if (item == null || item.isEmpty()) {
             return;
         }
         EnhanceData data = getEnhanceData(item);
@@ -150,7 +162,7 @@ public final class ItemUtil {
 
     /** 清空强化数据并恢复原始描述（重置装备属性用）。 */
     public static void clearEnhanceData(ItemStack item) {
-        if (item == null || item.getType().isAir()) {
+        if (item == null || item.isEmpty()) {
             return;
         }
         ItemMeta meta = item.getItemMeta();
@@ -167,7 +179,7 @@ public final class ItemUtil {
         } else {
             List<Component> lore = new ArrayList<>();
             for (String line : base) {
-                lore.add(LegacyComponentSerializer.legacySection().deserialize(line));
+                lore.add(deserializeBaseLine(line));
             }
             meta.lore(lore);
         }
@@ -178,7 +190,7 @@ public final class ItemUtil {
 
     /** 判断物品是否为至纯源石（由下界之星改来的特殊物品）。 */
     public static boolean isDragonTear(ItemStack item) {
-        if (item == null || item.getType().isAir()) {
+        if (item == null || item.isEmpty()) {
             return false;
         }
         ItemMeta meta = item.getItemMeta();
