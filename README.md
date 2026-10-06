@@ -1,6 +1,7 @@
 # EzStrengthen
 
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![CI](https://github.com/eta000Propofol/EzStrengthen/actions/workflows/ci.yml/badge.svg)](https://github.com/eta000Propofol/EzStrengthen/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/eta000Propofol/EzStrengthen?sort=semver)](https://github.com/eta000Propofol/EzStrengthen/releases/latest)
 [![Server](https://img.shields.io/badge/Paper-26.1.2-8A2BE2)](https://papermc.io/downloads)
 [![Java](https://img.shields.io/badge/Java-25%2B-orange)]()
