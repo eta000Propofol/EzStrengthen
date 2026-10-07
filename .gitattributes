@@ -1,0 +1,2 @@
+# Gradle wrapper 引导 jar 是仓库内唯一的二进制文件，按二进制处理（不做 diff、不做换行转换）
+gradle/wrapper/gradle-wrapper.jar binary
