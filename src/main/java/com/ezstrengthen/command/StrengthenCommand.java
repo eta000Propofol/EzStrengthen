@@ -27,6 +27,9 @@ import java.util.Map;
  */
 public class StrengthenCommand implements CommandExecutor, TabCompleter {
 
+    /** /st give 单次发放上限：36 格 × 64 = 一整背包，防手滑刷爆背包与掉落物。 */
+    private static final int MAX_GIVE_AMOUNT = 2304;
+
     private final EzStrengthen plugin;
 
     public StrengthenCommand(EzStrengthen plugin) {
@@ -76,7 +79,7 @@ public class StrengthenCommand implements CommandExecutor, TabCompleter {
                 int amount = 1;
                 if (args.length >= 3) {
                     try {
-                        amount = Math.max(1, Integer.parseInt(args[2]));
+                        amount = Math.min(MAX_GIVE_AMOUNT, Math.max(1, Integer.parseInt(args[2])));
                     } catch (NumberFormatException e) {
                         sender.sendMessage(Text.color("&c数量必须是正整数。"));
                         return true;
