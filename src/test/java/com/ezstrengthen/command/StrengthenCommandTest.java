@@ -23,19 +23,22 @@ import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.verify;
 
 /**
- * /st give 发放数量钳制的回归测试（也是命令层的第一批用例）：
- * - 数量下限 1、上限 2304（36 格 × 64 = 一整背包），双向钳制防手滑刷爆背包与掉落物；
+ * /st 命令的回归测试：
+ * - give 发放数量双向钳制：下限 1、上限 2304（36 格 × 64 = 一整背包），防手滑刷爆背包与掉落物；
  * - 合法数量原样透传，缺省数量参数默认 1；
- * - 发放反馈消息必须携带钳制后的实际数量，避免管理员误以为如数发放。
+ * - 发放反馈消息必须携带钳制后的实际数量，避免管理员误以为如数发放；
+ * - 玩家目标按精确名解析（getPlayerExact），防前缀模糊匹配把物品发错人。
  */
 @ExtendWith(MockitoExtension.class)
 class StrengthenCommandTest {
@@ -55,7 +58,7 @@ class StrengthenCommandTest {
     @BeforeEach
     void setUp() {
         bukkit = mockStatic(Bukkit.class);
-        bukkit.when(() -> Bukkit.getPlayer("Steve")).thenReturn(target);
+        bukkit.when(() -> Bukkit.getPlayerExact("Steve")).thenReturn(target);
 
         itemUtil = mockStatic(ItemUtil.class);
 
@@ -122,5 +125,22 @@ class StrengthenCommandTest {
 
         itemUtil.verify(() -> ItemUtil.createDragonTear(same(plugin), eq(1)));
         assertFeedbackCarriesAmount("1");
+    }
+
+    @Test
+    @DisplayName("目标玩家不在线（精确名未命中）时提示且不发放")
+    void giveToUnknownPlayerReportsNotFound() {
+        bukkit.when(() -> Bukkit.getPlayerExact("Nobody")).thenReturn(null);
+        lenient().when(plugin.getMessage("player-not-found")).thenReturn("目标玩家不在线");
+
+        runGive("give", "Nobody", "64");
+
+        itemUtil.verify(() -> ItemUtil.createDragonTear(any(), anyInt()), never());
+        ArgumentCaptor<Component> message = ArgumentCaptor.forClass(Component.class);
+        verify(sender, atLeastOnce()).sendMessage(message.capture());
+        assertTrue(message.getAllValues().stream()
+                        .map(Text::toJson)
+                        .anyMatch(json -> json.contains("目标玩家不在线")),
+                "应提示玩家未找到");
     }
 }

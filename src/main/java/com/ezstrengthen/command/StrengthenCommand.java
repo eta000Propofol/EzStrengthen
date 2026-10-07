@@ -71,7 +71,7 @@ public class StrengthenCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(Text.color("&c用法: /st give <玩家> <数量>"));
                     return true;
                 }
-                Player target = Bukkit.getPlayer(args[1]);
+                Player target = Bukkit.getPlayerExact(args[1]);
                 if (target == null) {
                     sender.sendMessage(Text.color(plugin.getMessage("player-not-found")));
                     return true;
@@ -107,7 +107,7 @@ public class StrengthenCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(Text.color("&c用法: /st stamp <玩家> <词条id:等级> [词条id:等级 ...]"));
                     return true;
                 }
-                Player target = Bukkit.getPlayer(args[1]);
+                Player target = Bukkit.getPlayerExact(args[1]);
                 if (target == null) {
                     sender.sendMessage(Text.color(plugin.getMessage("player-not-found")));
                     return true;
