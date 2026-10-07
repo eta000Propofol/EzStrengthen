@@ -59,7 +59,8 @@ public class EquipmentStats {
         double chanceCap = plugin.getChanceCap();
         double defenseCap = plugin.getDefenseCap();
         for (ItemStack item : items) {
-            if (item == null || item.getType().isAir()) {
+            // 判空统一走 isEmpty()（AGENTS.md 约定）：isAir() 需要服务器注册表，无服务器环境会崩
+            if (item == null || item.isEmpty()) {
                 continue;
             }
             EnhanceData data = ItemUtil.getEnhanceData(item);
