@@ -16,8 +16,12 @@ Thumbs.db
 .DS_Store
 
 # ZCode / Mimosa 工具生成物（会话本地缓存，不入库）
+.zcode/
 .zcodeignore
 .mimosa/
+
+# Java 升级类工具（modernize）本地工作区：工具自带 **/* 忽略，此处显式兜底
+.github/modernize/
 
 # Agent 本地交接文档（不入库）
 AGENTS.md
