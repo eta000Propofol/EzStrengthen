@@ -1,5 +1,11 @@
 plugins {
     java
+    jacoco
+}
+
+// Java 25 需要 JaCoCo 0.8.14+（0.8.13 对 Java 25 仅实验性支持）
+jacoco {
+    toolVersion = "0.8.14"
 }
 
 group = "com.ezstrengthen"
@@ -55,5 +61,11 @@ tasks {
     }
     test {
         useJUnitPlatform()
+    }
+    jacocoTestReport {
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
     }
 }
