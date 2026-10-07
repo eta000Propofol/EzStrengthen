@@ -39,12 +39,18 @@ import java.util.UUID;
 public class CombatService {
 
     private final EzStrengthen plugin;
-    private final Random random = new Random();
+    private final Random random;
     private final Map<UUID, BleedTask> bleedTasks = new HashMap<>();
     private final Set<UUID> internalDamageVictims = new HashSet<>();
 
     public CombatService(EzStrengthen plugin) {
+        this(plugin, new Random());
+    }
+
+    /** 包私有：测试注入固定随机源，使暴击/闪避/反弹/触发类词条分支可确定化。 */
+    CombatService(EzStrengthen plugin, Random random) {
         this.plugin = plugin;
+        this.random = random;
     }
 
     /** 处理一次物理攻击。 */
