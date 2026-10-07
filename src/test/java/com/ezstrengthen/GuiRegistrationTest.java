@@ -3,6 +3,7 @@ package com.ezstrengthen;
 import com.ezstrengthen.gui.EnhanceGui;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 
@@ -40,6 +41,7 @@ class GuiRegistrationTest {
     }
 
     @Test
+    @DisplayName("重复打开覆盖登记后，旧界面关闭不影响新界面注册")
     void closingOldGuiKeepsRegistrationOfReopenedGui() {
         Player player = player();
         EnhanceGui old = mock(EnhanceGui.class);
@@ -55,6 +57,7 @@ class GuiRegistrationTest {
     }
 
     @Test
+    @DisplayName("注销非当前登记的界面实例不影响现有注册")
     void unregisteringForeignGuiKeepsRegistration() {
         Player player = player();
         EnhanceGui current = mock(EnhanceGui.class);

@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.PlayerInventory;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -50,6 +51,7 @@ class GuiListenerTest {
     private CombatService combatService;
 
     @Test
+    @DisplayName("关闭界面注销对应实例且不重复返还物品")
     void onCloseUnregistersTheClosedGui() {
         InventoryCloseEvent event = mock(InventoryCloseEvent.class);
         when(event.getView()).thenReturn(view);
@@ -66,6 +68,7 @@ class GuiListenerTest {
     }
 
     @Test
+    @DisplayName("非插件容器的界面关闭不做任何处理")
     void onCloseIgnoresInventoryWithoutEnhanceGuiHolder() {
         InventoryCloseEvent event = mock(InventoryCloseEvent.class);
         when(event.getView()).thenReturn(view);
@@ -78,6 +81,7 @@ class GuiListenerTest {
     }
 
     @Test
+    @DisplayName("物品槽内 Q 键丢弃被取消（托管物品防丢失）")
     void onClickDropsFromItemSlotAreCancelled() {
         // 物品槽按 Q 丢弃：托管中的物品掉落地面可能因超时消失，必须取消
         InventoryClickEvent event = mock(InventoryClickEvent.class);
@@ -96,6 +100,7 @@ class GuiListenerTest {
     }
 
     @Test
+    @DisplayName("光标持有物品时在界面内 Q 键丢弃被取消")
     void onClickCursorDropsInGuiAreCancelled() {
         // 光标持有物品时在界面上按 Q 丢弃，同样必须取消
         InventoryClickEvent event = mock(InventoryClickEvent.class);
@@ -115,6 +120,7 @@ class GuiListenerTest {
     }
 
     @Test
+    @DisplayName("玩家退出时注销界面并清理战斗任务")
     void onQuitUnregistersRegisteredGuiAndCleansUpCombat() {
         PlayerQuitEvent event = mock(PlayerQuitEvent.class);
         when(event.getPlayer()).thenReturn(player);
@@ -131,6 +137,7 @@ class GuiListenerTest {
     }
 
     @Test
+    @DisplayName("无登记界面时退出仅清理战斗任务")
     void onQuitWithoutRegisteredGuiOnlyCleansUpCombat() {
         PlayerQuitEvent event = mock(PlayerQuitEvent.class);
         when(event.getPlayer()).thenReturn(player);

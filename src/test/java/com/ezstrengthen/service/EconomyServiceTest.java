@@ -10,6 +10,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicesManager;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -52,6 +53,7 @@ class EconomyServiceTest {
     }
 
     @Test
+    @DisplayName("经济插件晚启动时在使用前重试接入并刷新界面")
     @SuppressWarnings("unchecked")
     void connectsWhenEconomyPluginRegistersLater() {
         when(pluginManager.getPlugin("Vault")).thenReturn(mock(Plugin.class));
@@ -78,6 +80,7 @@ class EconomyServiceTest {
     }
 
     @Test
+    @DisplayName("未安装 Vault 时安全降级且不触碰 Economy 类")
     void staysSafeWithoutVault() {
         when(pluginManager.getPlugin("Vault")).thenReturn(null);
         EconomyService service = new EconomyService(plugin);

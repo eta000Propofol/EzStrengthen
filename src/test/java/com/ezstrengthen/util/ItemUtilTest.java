@@ -15,6 +15,7 @@ import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -97,6 +98,7 @@ class ItemUtilTest {
     }
 
     @Test
+    @DisplayName("base lore 以 JSON 无损存取（含 RGB/悬停/translatable）")
     void baseLoreRoundTripsLosslessly() {
         when(meta.lore()).thenReturn(new ArrayList<>(initialLore()));
         ItemUtil.setEnhanceData(item, new EnhanceData(1, List.of()));
@@ -109,6 +111,7 @@ class ItemUtilTest {
     }
 
     @Test
+    @DisplayName("translatable 与 hover 组件在往返后保持原样")
     void translatableAndHoverSurviveRoundTrip() {
         when(meta.lore()).thenReturn(new ArrayList<>(initialLore()));
         ItemUtil.setEnhanceData(item, new EnhanceData(1, List.of()));
@@ -120,6 +123,7 @@ class ItemUtilTest {
     }
 
     @Test
+    @DisplayName("多次强化不重复拼接 base lore")
     void repeatedEnhancesKeepSingleBaseLore() {
         when(meta.lore()).thenReturn(new ArrayList<>(initialLore()));
         ItemUtil.setEnhanceData(item, new EnhanceData(1, List.of()));
@@ -133,6 +137,7 @@ class ItemUtilTest {
     }
 
     @Test
+    @DisplayName("旧版 legacy § 存档升级后仍可读取")
     void legacyBaseLoreStillReadsAfterUpgrade() {
         // 模拟旧版本物品：base lore 以 legacy § 字符串存档，无格式标记
         pdc.set(new NamespacedKey(plugin, "base_lore"), PersistentDataType.LIST.strings(),
@@ -144,6 +149,7 @@ class ItemUtilTest {
     }
 
     @Test
+    @DisplayName("引号开头的 legacy 行不误判为 JSON")
     void quotedLegacyLinesAreNotMisdetectedAsJson() {
         // legacy 描述行字面以引号开头（如引号包裹的名字）且恰好是合法 JSON 字符串时，
         // 必须按 legacy 原样读回，不能因 JSON 启发式剥掉引号
@@ -156,6 +162,7 @@ class ItemUtilTest {
     }
 
     @Test
+    @DisplayName("重置还原原始描述并清除强化数据")
     void clearRestoresOriginalLoreAndRemovesData() {
         when(meta.lore()).thenReturn(new ArrayList<>(initialLore()));
         ItemUtil.setEnhanceData(item, new EnhanceData(1, List.of()));
