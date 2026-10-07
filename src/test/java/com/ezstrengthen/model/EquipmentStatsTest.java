@@ -16,7 +16,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -69,6 +68,7 @@ class EquipmentStatsTest {
                     .thenReturn(new EnhanceData(1, List.of(new AffixInstance("crit_chance", 1))));
             itemUtil.when(() -> ItemUtil.getEnhanceData(b))
                     .thenReturn(new EnhanceData(1, List.of(new AffixInstance("crit_chance", 1))));
+            // 连续桩与装备顺序耦合：fromItems 按 List 顺序聚合，a 先 b 后 → 第一件 30%、第二件 40%
             when(plugin.getAffixConfig("crit_chance")).thenReturn(low, high);
 
             EquipmentStats stats = EquipmentStats.fromItems(List.of(a, b), plugin);

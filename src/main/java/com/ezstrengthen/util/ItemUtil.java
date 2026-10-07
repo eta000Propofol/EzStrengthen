@@ -1,7 +1,6 @@
 package com.ezstrengthen.util;
 
 import com.ezstrengthen.EzStrengthen;
-import com.ezstrengthen.model.Affix;
 import com.ezstrengthen.model.AffixConfig;
 import com.ezstrengthen.model.AffixInstance;
 import com.ezstrengthen.model.EnhanceData;

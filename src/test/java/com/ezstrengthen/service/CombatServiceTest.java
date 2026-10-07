@@ -5,7 +5,6 @@ import com.ezstrengthen.model.Affix;
 import com.ezstrengthen.model.AffixConfig;
 import com.ezstrengthen.model.AffixInstance;
 import com.ezstrengthen.model.EnhanceData;
-import com.ezstrengthen.model.EquipmentStats;
 import com.ezstrengthen.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -47,7 +46,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.same;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -102,7 +100,8 @@ class CombatServiceTest {
             scheduledTasks.add(inv.getArgument(1, Runnable.class));
             return mock(BukkitTask.class);
         });
-        lenient().when(scheduler.runTaskTimer(same(plugin), any(Runnable.class), anyLong(), anyLong())).thenAnswer(inv -> {
+        lenient().when(scheduler.runTaskTimer(
+                same(plugin), any(Runnable.class), anyLong(), anyLong())).thenAnswer(inv -> {
             Runnable task = inv.getArgument(1, Runnable.class);
             timerTasks.add(task);
             if (task instanceof BukkitRunnable bukkitRunnable) {
