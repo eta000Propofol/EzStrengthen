@@ -167,11 +167,15 @@ public class EnhanceService {
 
     /**
      * 重置装备属性：清空所有强化词条，恢复原始描述。
+     * 仅接受单件物品：数量 > 1 时拒绝（GUI 已前置校验，此处纵深防御）。
      * 需要消耗货币（economy.reset-cost，默认 5000）。
      */
     public EnhanceResult reset(Player player, ItemStack item) {
         if (item == null || item.isEmpty()) {
             return EnhanceResult.NO_ITEM;
+        }
+        if (item.getAmount() > 1) {
+            return EnhanceResult.TOO_MANY_ITEMS;
         }
         if (!plugin.getEconomyService().isAvailable()) {
             return EnhanceResult.NO_ECONOMY;
@@ -193,11 +197,15 @@ public class EnhanceService {
 
     /**
      * 修复装备耐久：把物品的损耗清零。
+     * 仅接受单件物品：数量 > 1 时拒绝（GUI 已前置校验，此处纵深防御）。
      * 需要消耗货币（economy.repair-cost，默认 5000）。
      */
     public EnhanceResult repair(Player player, ItemStack item) {
         if (item == null || item.isEmpty()) {
             return EnhanceResult.NO_ITEM;
+        }
+        if (item.getAmount() > 1) {
+            return EnhanceResult.TOO_MANY_ITEMS;
         }
         if (!plugin.getEconomyService().isAvailable()) {
             return EnhanceResult.NO_ECONOMY;

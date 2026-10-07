@@ -165,6 +165,61 @@ class EnhanceServiceTest {
     }
 
     @Test
+    @DisplayName("整组物品重置请求在扣款前被拒绝（TOO_MANY_ITEMS）")
+    void multiItemStackIsRejectedBeforeResetting() {
+        // 护栏位于一切经济/配置读取之前，无需任何桩即可触发
+        ItemStack item = itemMock();
+        when(item.getAmount()).thenReturn(64);
+
+        try (MockedStatic<ItemUtil> itemUtil = mockStatic(ItemUtil.class)) {
+            assertEquals(EnhanceResult.TOO_MANY_ITEMS, service.reset(player, item));
+
+            verify(economyService, never()).has(same(player), anyDouble());
+            verify(economyService, never()).withdraw(same(player), anyDouble());
+            itemUtil.verify(() -> ItemUtil.clearEnhanceData(any()), never());
+        }
+    }
+
+    @Test
+    @DisplayName("整组物品修复请求在扣款前被拒绝（TOO_MANY_ITEMS）")
+    void multiItemStackIsRejectedBeforeRepairing() {
+        ItemStack item = itemMock();
+        when(item.getAmount()).thenReturn(64);
+
+        assertEquals(EnhanceResult.TOO_MANY_ITEMS, service.repair(player, item));
+
+        verify(economyService, never()).withdraw(same(player), anyDouble());
+        verify(item, never()).setItemMeta(any());
+    }
+
+    @Test
+    @DisplayName("单件物品重置请求越过数量护栏（NO_ENHANCEMENT）")
+    void singleItemResetPassesTheAmountGuard() {
+        when(plugin.getEconomyService()).thenReturn(economyService);
+        when(economyService.isAvailable()).thenReturn(true);
+        ItemStack item = itemMock();
+        when(item.getAmount()).thenReturn(1);
+
+        try (MockedStatic<ItemUtil> itemUtil = mockStatic(ItemUtil.class)) {
+            itemUtil.when(() -> ItemUtil.getEnhanceData(item)).thenReturn(new EnhanceData(0, List.of()));
+
+            assertEquals(EnhanceResult.NO_ENHANCEMENT, service.reset(player, item));
+        }
+    }
+
+    @Test
+    @DisplayName("单件物品修复请求越过数量护栏（NOT_REPAIRABLE）")
+    void singleItemRepairPassesTheAmountGuard() {
+        when(plugin.getEconomyService()).thenReturn(economyService);
+        when(economyService.isAvailable()).thenReturn(true);
+        ItemStack item = itemMock();
+        when(item.getAmount()).thenReturn(1);
+        when(item.getItemMeta()).thenReturn(mock(ItemMeta.class));
+
+        assertEquals(EnhanceResult.NOT_REPAIRABLE, service.repair(player, item));
+    }
+
+    @Test
     @DisplayName("至纯源石不足时中止强化且不扣款（NOT_ENOUGH_TEARS）")
     void missingTearsRejectEnhancementBeforeCharging() {
         stubEconomyForAttempt();
