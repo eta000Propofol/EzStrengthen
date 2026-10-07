@@ -136,6 +136,35 @@ class EnhanceServiceTest {
     }
 
     @Test
+    @DisplayName("整组物品（数量 > 1）强化请求在扣款前被拒绝（TOO_MANY_ITEMS）")
+    void multiItemStackIsRejectedBeforeCharging() {
+        // 护栏位于一切经济/配置读取之前，无需任何桩即可触发
+        ItemStack item = itemMock();
+        when(item.getAmount()).thenReturn(64);
+
+        try (MockedStatic<ItemUtil> itemUtil = mockStatic(ItemUtil.class)) {
+            assertEquals(EnhanceResult.TOO_MANY_ITEMS, service.attempt(player, item));
+
+            verify(economyService, never()).has(same(player), anyDouble());
+            verify(economyService, never()).withdraw(same(player), anyDouble());
+            itemUtil.verify(() -> ItemUtil.setEnhanceData(any(), any()), never());
+        }
+    }
+
+    @Test
+    @DisplayName("单件物品通过数量护栏继续正常流程")
+    void singleItemPassesTheAmountGuard() {
+        when(plugin.getEconomyService()).thenReturn(economyService);
+        when(plugin.getEnabledAffixes()).thenReturn(List.of(mock(AffixConfig.class)));
+        when(economyService.isAvailable()).thenReturn(false);
+        ItemStack item = itemMock();
+        when(item.getAmount()).thenReturn(1);
+
+        // 未接通经济 → NO_ECONOMY：证明流程已越过数量护栏（否则会返回 TOO_MANY_ITEMS）
+        assertEquals(EnhanceResult.NO_ECONOMY, service.attempt(player, item));
+    }
+
+    @Test
     @DisplayName("至纯源石不足时中止强化且不扣款（NOT_ENOUGH_TEARS）")
     void missingTearsRejectEnhancementBeforeCharging() {
         stubEconomyForAttempt();

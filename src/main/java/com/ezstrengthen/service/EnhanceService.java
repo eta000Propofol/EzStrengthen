@@ -21,7 +21,7 @@ public class EnhanceService {
     /** 操作结果。 */
     public enum EnhanceResult {
         SUCCESS, FAIL, MAX_LEVEL, NO_ECONOMY, NOT_ENOUGH_MONEY, NOT_ENOUGH_TEARS, NO_ITEM,
-        RESET_SUCCESS, REPAIR_SUCCESS, NO_ENHANCEMENT, NOT_DAMAGED, NOT_REPAIRABLE
+        TOO_MANY_ITEMS, RESET_SUCCESS, REPAIR_SUCCESS, NO_ENHANCEMENT, NOT_DAMAGED, NOT_REPAIRABLE
     }
 
     private final EzStrengthen plugin;
@@ -109,11 +109,16 @@ public class EnhanceService {
 
     /**
      * 执行一次强化。
+     * 仅接受单件物品：数量 > 1 时拒绝（GUI 已前置校验，此处纵深防御，
+     * 防止未来调用方把整组物品一次性写入强化数据）。
      * 成功：增加词条并写入物品；失败：材料已消耗，物品不变。
      */
     public EnhanceResult attempt(Player player, ItemStack item) {
         if (item == null || item.isEmpty()) {
             return EnhanceResult.NO_ITEM;
+        }
+        if (item.getAmount() > 1) {
+            return EnhanceResult.TOO_MANY_ITEMS;
         }
         if (plugin.getEnabledAffixes().isEmpty()) {
             return EnhanceResult.FAIL;
