@@ -25,10 +25,16 @@ public class EnhanceService {
     }
 
     private final EzStrengthen plugin;
-    private final Random random = new Random();
+    private final Random random;
 
     public EnhanceService(EzStrengthen plugin) {
+        this(plugin, new Random());
+    }
+
+    /** 包私有：测试注入固定随机源，使成功率判定与词条/等级抽取可确定化。 */
+    EnhanceService(EzStrengthen plugin, Random random) {
         this.plugin = plugin;
+        this.random = random;
     }
 
     /** 第 level 次（1 起）强化所需的货币；超过配置长度时沿用最后一档，绝不返回 0（免费）。 */
