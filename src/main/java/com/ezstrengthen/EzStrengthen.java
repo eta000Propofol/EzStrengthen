@@ -203,9 +203,4 @@ public final class EzStrengthen extends JavaPlugin {
     public EnhanceGui getOpenGui(Player player) {
         return openGuis.get(player.getUniqueId());
     }
-
-    /** 供 GUI 内部使用的玩家访问器。 */
-    public static Player getPlayer(UUID uuid) {
-        return Bukkit.getPlayer(uuid);
-    }
 }
